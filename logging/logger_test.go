@@ -18,38 +18,26 @@
 package logging
 
 import (
-	"io"
-	"os"
-	
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
+	"testing"
 )
 
-var (
-	Logger *zap.SugaredLogger
-)
-
-func init() {
-	InitLogger("info")
-}
-
-func InitLogger(level string) {
-	l, err := zapcore.ParseLevel(level)
-	if err != nil {
-		l = zapcore.InfoLevel
+func TestInitLogger(t *testing.T) {
+	type args struct {
+		level string
 	}
-	
-	encoderConfig := zap.NewProductionEncoderConfig()
-	encoderConfig.EncodeTime = zapcore.RFC3339TimeEncoder
-	encoderConfig.EncodeLevel = zapcore.CapitalLevelEncoder
-	
-	encoder := zapcore.NewConsoleEncoder(encoderConfig)
-	core := zapcore.NewCore(encoder, zapcore.NewMultiWriteSyncer(zapcore.AddSync(os.Stdout)), zap.NewAtomicLevelAt(l))
-	zapLogger := zap.New(core, zap.AddCaller())
-	
-	Logger = zapLogger.Sugar()
-}
-
-func MultiWriter() io.Writer {
-	return io.MultiWriter(os.Stdout)
+	tests := []struct {
+		name string
+		args args
+	}{
+		{
+			name: "init log",
+			args: args{level: "error"},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			InitLogger(tt.args.level)
+		})
+		Logger.Errorf("error %s", "msg")
+	}
 }

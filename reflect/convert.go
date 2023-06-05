@@ -15,41 +15,34 @@
  * limitations under the License.
  */
 
-package logging
+package reflect
 
 import (
-	"io"
-	"os"
+	"reflect"
 	
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
+	"github.com/acmestack/devstack/logging"
 )
 
-var (
-	Logger *zap.SugaredLogger
+const (
+	AlignToTag = "alignTo"
 )
 
-func init() {
-	InitLogger("info")
-}
-
-func InitLogger(level string) {
-	l, err := zapcore.ParseLevel(level)
-	if err != nil {
-		l = zapcore.InfoLevel
+func Convert(target any, source any) {
+	sourceValueOf := reflect.ValueOf(source)
+	targetValueOf := reflect.ValueOf(target).Elem()
+	
+	sourceTypeOf := reflect.TypeOf(source)
+	sourceFields := reflect.VisibleFields(sourceTypeOf)
+	for i, field := range sourceFields {
+		logging.Logger.Infof("file index %d, field %v", i, field)
+		targetFieldName := field.Name
+		tag := field.Tag.Get(AlignToTag)
+		if tag != "" {
+			targetFieldName = tag
+		}
+		value := targetValueOf.FieldByName(targetFieldName)
+		if value.Kind() != reflect.Invalid && value.Type() == field.Type {
+			value.Set(sourceValueOf.FieldByName(field.Name))
+		}
 	}
-	
-	encoderConfig := zap.NewProductionEncoderConfig()
-	encoderConfig.EncodeTime = zapcore.RFC3339TimeEncoder
-	encoderConfig.EncodeLevel = zapcore.CapitalLevelEncoder
-	
-	encoder := zapcore.NewConsoleEncoder(encoderConfig)
-	core := zapcore.NewCore(encoder, zapcore.NewMultiWriteSyncer(zapcore.AddSync(os.Stdout)), zap.NewAtomicLevelAt(l))
-	zapLogger := zap.New(core, zap.AddCaller())
-	
-	Logger = zapLogger.Sugar()
-}
-
-func MultiWriter() io.Writer {
-	return io.MultiWriter(os.Stdout)
 }
