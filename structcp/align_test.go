@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package reflect
+package structcp
 
 import (
 	"reflect"
@@ -74,7 +74,7 @@ func Test(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			logging.Logger.Infof("case name %s", test.name)
-			Convert(&test.target, test.source)
+			Align(&test.target, test.source)
 			if test.align {
 				sourceValueOf := reflect.ValueOf(test.source)
 				targetValueOf := reflect.ValueOf(&test.target).Elem()

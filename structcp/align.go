@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package reflect
+package structcp
 
 import (
 	"reflect"
@@ -27,7 +27,7 @@ const (
 	AlignToTag = "alignTo"
 )
 
-func Convert(target any, source any) {
+func Align(target any, source any) {
 	sourceValueOf := reflect.ValueOf(source)
 	targetValueOf := reflect.ValueOf(target).Elem()
 	
