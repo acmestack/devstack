@@ -15,21 +15,28 @@
  * limitations under the License.
  */
 
-package settings
+package app
 
-const (
-	AppConfigurations = "app.yaml"
-	LogLevel          = "LOG_LEVEL"
+import (
+	"net/http"
+	
+	"github.com/gin-gonic/gin"
 )
 
-type Setting struct {
-	path string
-}
+type GinEngineRouterFunc func(engine *gin.Engine)
 
-func NewSetting(path string, patch ...interface{}) *Setting {
-	return &Setting{path: path}
-}
-
-func Patch(patch interface{}) interface{} {
-	return nil
+func (e *engine) serverRun(engine *gin.Engine) {
+	{
+		httpServer := &http.Server{
+			Addr:    ":8080",
+			Handler: engine,
+		}
+		
+		Logger.Info("start https server listening", "addr", httpServer.Addr)
+		
+		err := httpServer.ListenAndServe()
+		if err != nil {
+			Logger.Error(err, "start https server error")
+		}
+	}
 }

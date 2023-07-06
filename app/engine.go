@@ -15,23 +15,28 @@
  * limitations under the License.
  */
 
-package http
+package app
 
 import (
 	"fmt"
-	"io"
 	"net/http"
-	"os"
 	"time"
 	
 	"github.com/gin-gonic/gin"
 	
-	"github.com/acmestack/devstack/logging"
-	"github.com/acmestack/devstack/settings"
+	"github.com/acmestack/devstack/app/settings"
 )
 
-func InitEngine(cfg *settings.Setting, writer io.Writer) *gin.Engine {
-	gin.SetMode(os.Getenv(gin.EnvGinMode))
+type engine struct {
+	setting *settings.Setting
+}
+
+func newEngine(setting *settings.Setting) *engine {
+	return &engine{setting: setting}
+}
+
+func (e *engine) initGinEngine(routerFunc GinEngineRouterFunc) *gin.Engine {
+	gin.SetMode(e.setting.EnvGinMode)
 	
 	router := gin.Default()
 	
@@ -50,22 +55,23 @@ func InitEngine(cfg *settings.Setting, writer io.Writer) *gin.Engine {
 				param.ErrorMessage,
 			)
 		},
-		Output:    writer,
+		Output:    e.setting.Writer,
 		SkipPaths: nil,
 	}))
 	
 	// Recovery middleware recovers from any panics and writes a 500 if there was one.
 	router.Use(gin.CustomRecovery(func(context *gin.Context, recovered interface{}) {
-		if err, ok := recovered.(string); ok {
-			logging.Logger.Errorf("error %v", err)
-			context.JSON(http.StatusInternalServerError, http.StatusInternalServerError)
-		}
-		context.AbortWithStatus(http.StatusInternalServerError)
+		Logger.Error(fmt.Errorf("%v", recovered), "")
+		context.JSON(http.StatusInternalServerError, http.StatusInternalServerError)
 	}))
 	
 	router.GET("/health", func(c *gin.Context) {
 		c.String(http.StatusOK, "ok")
 	})
+	
+	if routerFunc != nil {
+		routerFunc(router)
+	}
 	
 	return router
 }

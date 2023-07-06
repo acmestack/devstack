@@ -18,33 +18,22 @@
 package app
 
 import (
-	"os"
-	
-	"github.com/acmestack/devstack/http"
+	"github.com/acmestack/devstack/app/settings"
 	"github.com/acmestack/devstack/logging"
-	"github.com/acmestack/devstack/settings"
 )
 
-type App struct {
-	setting *settings.Setting
-}
+var (
+	Logger logging.Logger
+	// SugaredLogger *zap.SugaredLogger
+)
 
-var app *App
-
-func Run(enginePatch http.EnginePatchFunc, patch ...interface{}) {
-	writer := logging.MultiWriter()
-	cfg := settings.NewSetting(settings.AppConfigurations, patch...)
+func Run(routerFunc GinEngineRouterFunc) {
+	setting := settings.NewSetting()
 	
-	logging.InitLogger(os.Getenv(settings.LogLevel))
+	Logger = logging.InitLogger(setting.LogLevel)
+	// SugaredLogger = Logger.Sugar
 	
-	engine := http.InitEngine(cfg, writer)
-	if enginePatch != nil {
-		enginePatch(engine)
-	}
-	http.Run(engine)
-	app = &App{setting: cfg}
-}
-
-func Settings() *settings.Setting {
-	return app.setting
+	httpEngine := newEngine(setting)
+	engine := httpEngine.initGinEngine(routerFunc)
+	httpEngine.serverRun(engine)
 }
