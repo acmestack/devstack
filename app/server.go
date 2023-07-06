@@ -15,28 +15,28 @@
  * limitations under the License.
  */
 
-package http
+package app
 
 import (
 	"net/http"
 	
 	"github.com/gin-gonic/gin"
-	
-	"github.com/acmestack/devstack/logging"
 )
 
-type EnginePatchFunc func(engine *gin.Engine)
+type GinEngineRouterFunc func(engine *gin.Engine)
 
-func Run(engine *gin.Engine) {
-	httpServer := &http.Server{
-		Addr:    ":8080",
-		Handler: engine,
-	}
-	
-	logging.Logger.Infof("start http server listening %s", httpServer.Addr)
-	
-	err := httpServer.ListenAndServe()
-	if err != nil {
-		logging.Logger.Errorf("start http server error %v", err)
+func (e *engine) serverRun(engine *gin.Engine) {
+	{
+		httpServer := &http.Server{
+			Addr:    ":8080",
+			Handler: engine,
+		}
+		
+		Logger.Info("start https server listening", "addr", httpServer.Addr)
+		
+		err := httpServer.ListenAndServe()
+		if err != nil {
+			Logger.Error(err, "start https server error")
+		}
 	}
 }

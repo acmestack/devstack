@@ -15,34 +15,34 @@
  * limitations under the License.
  */
 
-package structcp
+package settings
 
 import (
-	"reflect"
+	"io"
+	"os"
+	
+	"github.com/acmestack/godkits/gox/stringsx"
+	"github.com/gin-gonic/gin"
 	
 	"github.com/acmestack/devstack/logging"
 )
 
 const (
-	AlignToTag = "alignTo"
+	AppConfigurations = "app.yaml"
 )
 
-func Align(target any, source any) {
-	sourceValueOf := reflect.ValueOf(source)
-	targetValueOf := reflect.ValueOf(target).Elem()
-	
-	sourceTypeOf := reflect.TypeOf(source)
-	sourceFields := reflect.VisibleFields(sourceTypeOf)
-	for i, field := range sourceFields {
-		logging.Logger.Infof("file index %d, field %v", i, field)
-		targetFieldName := field.Name
-		tag := field.Tag.Get(AlignToTag)
-		if tag != "" {
-			targetFieldName = tag
-		}
-		value := targetValueOf.FieldByName(targetFieldName)
-		if value.Kind() != reflect.Invalid && value.Type() == field.Type {
-			value.Set(sourceValueOf.FieldByName(field.Name))
-		}
+type Setting struct {
+	LogLevel   logging.LogLevel
+	Port       string
+	Writer     io.Writer
+	EnvGinMode string
+}
+
+func NewSetting() *Setting {
+	return &Setting{
+		LogLevel:   logging.LogLevel(stringsx.DefaultIfEmpty(os.Getenv("LOG_LEVEL"), string(logging.LogLevelInfo))),
+		Port:       stringsx.DefaultIfEmpty(os.Getenv("PORT"), "8080"),
+		Writer:     io.MultiWriter(os.Stdout),
+		EnvGinMode: stringsx.DefaultIfEmpty(os.Getenv(gin.EnvGinMode), "debug"),
 	}
 }

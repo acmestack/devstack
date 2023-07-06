@@ -1,20 +1,3 @@
-/*
- * Licensed to the AcmeStack under one or more contributor license
- * agreements. See the NOTICE file distributed with this work for
- * additional information regarding copyright ownership.
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package structcp
 
 import (
@@ -71,9 +54,11 @@ func Test(t *testing.T) {
 			align:  true,
 		},
 	}
+	
+	logger := logging.InitLogger("info")
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			logging.Logger.Infof("case name %s", test.name)
+			logger.Sugar.Infof("case name %s", test.name)
 			Align(&test.target, test.source)
 			if test.align {
 				sourceValueOf := reflect.ValueOf(test.source)
@@ -82,17 +67,17 @@ func Test(t *testing.T) {
 				sourceTypeOf := reflect.TypeOf(test.source)
 				sourceFields := reflect.VisibleFields(sourceTypeOf)
 				for i, field := range sourceFields {
-					logging.Logger.Infof("file index %d, field %v", i, field)
+					logger.Sugar.Infof("file index %d, field %v", i, field)
 					value := targetValueOf.FieldByName(field.Name)
 					
 					sourceValue := sourceValueOf.FieldByName(field.Name).String()
 					if value.Kind() != reflect.Invalid && value.Type() == field.Type && !reflect.DeepEqual(value.String(), sourceValue) {
 						t.Error("align error")
 					}
-					logging.Logger.Infof("value %s, sourcevalue %s", value.String(), sourceValue)
+					logger.Sugar.Infof("value %s, sourcevalue %s", value.String(), sourceValue)
 				}
 			}
-			logging.Logger.Infof("bb addr: %d, name: %s, others1 %s", test.target.Addr, test.target.Name, test.target.Other1)
+			logger.Sugar.Infof("bb addr: %d, name: %s, others1 %s", test.target.Addr, test.target.Name, test.target.Other1)
 		})
 	}
 }
