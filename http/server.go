@@ -15,34 +15,28 @@
  * limitations under the License.
  */
 
-package settings
+package http
 
 import (
-	"io"
-	"os"
+	"net/http"
 	
-	"github.com/acmestack/godkits/gox/stringsx"
 	"github.com/gin-gonic/gin"
 	
 	"github.com/acmestack/devstack/logging"
 )
 
-const (
-	AppConfigurations = "app.yaml"
-)
+type EnginePatchFunc func(engine *gin.Engine)
 
-type Setting struct {
-	LogLevel   logging.LogLevel
-	Port       string
-	Writer     io.Writer
-	EnvGinMode string
-}
-
-func NewSetting() *Setting {
-	return &Setting{
-		LogLevel:   logging.LogLevel(stringsx.DefaultIfEmpty(os.Getenv("LOG_LEVEL"), string(logging.LogLevelInfo))),
-		Port:       stringsx.DefaultIfEmpty(os.Getenv("PORT"), "8080"),
-		Writer:     io.MultiWriter(os.Stdout),
-		EnvGinMode: stringsx.DefaultIfEmpty(os.Getenv(gin.EnvGinMode), "debug"),
+func Run(engine *gin.Engine) {
+	httpServer := &http.Server{
+		Addr:    ":8080",
+		Handler: engine,
+	}
+	
+	logging.Logger.Infof("start http server listening %s", httpServer.Addr)
+	
+	err := httpServer.ListenAndServe()
+	if err != nil {
+		logging.Logger.Errorf("start http server error %v", err)
 	}
 }

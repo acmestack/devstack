@@ -3,10 +3,7 @@ module github.com/acmestack/devstack
 go 1.18
 
 require (
-	github.com/acmestack/godkits v0.0.11
 	github.com/gin-gonic/gin v1.9.0
-	github.com/go-logr/logr v1.2.4
-	github.com/go-logr/zapr v1.2.4
 	go.uber.org/zap v1.24.0
 )
 
